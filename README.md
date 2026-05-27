@@ -1,2 +1,3 @@
-# hello-world
-Hello world new project template.
+# blast_proto
+
+Simple blast game proto, built with Cocos Creator 2.4
