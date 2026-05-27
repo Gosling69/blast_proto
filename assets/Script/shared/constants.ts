@@ -1,0 +1,79 @@
+import { TInitialSpawnSettings as TBoardSpawnSettings, TRoundConfig, TGameDifficulties } from './types'
+
+const BOARD_WIDTH = 8
+const BOARD_HEIGHT = 8
+const TURNS_LEFT = 3
+const TARGET_SCORE = 200
+const NUM_SWAP_BOOSTERS = 3
+const NUM_BOMB_BOOSTERS = 5
+const BOMB_RADIUS = 1
+const NUM_TILES_FOR_SUPER_TILE_SPAWN = 6
+const NUM_BOARD_SHUFFLES_LEFT = 3
+const DEFAULT_DIFFICULITY: TBoardSpawnSettings = {
+  connectedRatio: 0.2,
+  minGroupSize: 2,
+  maxGroupSize: 5,
+}
+
+export const DEFAULT_CONFIG: TRoundConfig = {
+  targetScore: TARGET_SCORE,
+  numTurnsLeft: TURNS_LEFT,
+  numTeleportBoosters: NUM_SWAP_BOOSTERS,
+  numBombBoosters: NUM_BOMB_BOOSTERS,
+  bombRadius: BOMB_RADIUS,
+  boardHeight: BOARD_HEIGHT,
+  boardWidth: BOARD_WIDTH,
+  groupSizeForSuperSpawn: NUM_TILES_FOR_SUPER_TILE_SPAWN,
+  initialSpawnSettings: DEFAULT_DIFFICULITY,
+  boardShufflesLeft: NUM_BOARD_SHUFFLES_LEFT,
+}
+export const BASE_DIFFICULTIES: TGameDifficulties = {
+  easy: {
+    boardHeight: 6,
+    boardWidth: 7,
+    boardShufflesLeft: 3,
+    bombRadius: 2,
+    numBombBoosters: 5,
+    numTeleportBoosters: 5,
+    groupSizeForSuperSpawn: 5,
+    numTurnsLeft: 20,
+    targetScore: 100,
+    initialSpawnSettings: {
+      minGroupSize: 3,
+      maxGroupSize: 6,
+      connectedRatio: 0.5,
+    },
+  },
+  medium: {
+    boardHeight: 8,
+    boardWidth: 8,
+    boardShufflesLeft: 3,
+    bombRadius: 1,
+    numBombBoosters: 4,
+    numTeleportBoosters: 4,
+    groupSizeForSuperSpawn: 5,
+    numTurnsLeft: 15,
+    targetScore: 140,
+    initialSpawnSettings: {
+      minGroupSize: 2,
+      maxGroupSize: 5,
+      connectedRatio: 0.3,
+    },
+  },
+  hard: {
+    boardHeight: 9,
+    boardWidth: 9,
+    boardShufflesLeft: 3,
+    bombRadius: 1,
+    numBombBoosters: 3,
+    numTeleportBoosters: 3,
+    groupSizeForSuperSpawn: 6,
+    numTurnsLeft: 15,
+    targetScore: 170,
+    initialSpawnSettings: {
+      minGroupSize: 2,
+      maxGroupSize: 4,
+      connectedRatio: 0.2,
+    },
+  },
+}

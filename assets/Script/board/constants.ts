@@ -1,0 +1,5 @@
+export const COLOR_RED = new cc.Color(255, 0, 0)
+export const COLOR_GREEN = new cc.Color(0, 255, 0)
+export const COLOR_BLUE = new cc.Color(0, 0, 255)
+export const COLOR_PURPLE = new cc.Color(255, 0, 0)
+export const COLOR_YELLOW = new cc.Color(128, 0, 255)

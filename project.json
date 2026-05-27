@@ -1,0 +1,9 @@
+{
+  "engine": "cocos2d-html5",
+  "packages": "packages",
+  "version": "2.4.0",
+  "name": "TestTask",
+  "id": "0e8d6a20-47bb-4340-95c4-0b6962dbf9e9",
+  "isNew": false,
+  "description": "Simple blast game proto."
+}
