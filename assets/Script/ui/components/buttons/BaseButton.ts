@@ -26,7 +26,7 @@ export default class BaseButton extends cc.Component {
 
   private readonly transitionDuration = 0.12
 
-  onLoad(): void {
+  onLoad() {
     this.button.transition = cc.Button.Transition.NONE
 
     if (this.selectedGlow) {
@@ -43,12 +43,12 @@ export default class BaseButton extends cc.Component {
     this.applyVisualState(true)
   }
 
-  setSelected(value: boolean): void {
+  setSelected(value: boolean) {
     this.isSelected = value
     this.applyVisualState()
   }
 
-  setEnabled(value: boolean): void {
+  setEnabled(value: boolean) {
     this.isEnabled = value
     this.button.interactable = value
 
@@ -60,7 +60,7 @@ export default class BaseButton extends cc.Component {
     this.applyVisualState()
   }
 
-  setClickHandler(callback: () => void): void {
+  setClickHandler(callback: () => void) {
     if (this.clickHandler) {
       this.button.node.off('click', this.clickHandler, this)
     }
@@ -69,14 +69,14 @@ export default class BaseButton extends cc.Component {
     this.button.node.on('click', this.clickHandler, this)
   }
 
-  dispose(): void {
+  dispose() {
     if (this.clickHandler) {
       this.button.node.off('click', this.clickHandler, this)
       this.clickHandler = null
     }
   }
 
-  onDestroy(): void {
+  onDestroy() {
     this.dispose()
 
     cc.Tween.stopAllByTarget(this.node)
@@ -92,7 +92,7 @@ export default class BaseButton extends cc.Component {
     this.node.off(cc.Node.EventType.TOUCH_CANCEL, this.handleNormal, this)
   }
 
-  private handleHover(): void {
+  private handleHover() {
     if (!this.isEnabled || this.isSelected) return
 
     this.isHover = true
@@ -101,21 +101,21 @@ export default class BaseButton extends cc.Component {
     this.applyVisualState()
   }
 
-  private handlePressed(): void {
+  private handlePressed() {
     if (!this.isEnabled) return
 
     this.isPressed = true
     this.applyVisualState()
   }
 
-  private handleTouchEnd(): void {
+  private handleTouchEnd() {
     if (!this.isEnabled) return
 
     this.isPressed = false
     this.applyVisualState()
   }
 
-  private handleNormal(): void {
+  private handleNormal() {
     if (!this.isEnabled) return
 
     this.isHover = false
@@ -124,7 +124,7 @@ export default class BaseButton extends cc.Component {
     this.applyVisualState()
   }
 
-  private applyVisualState(immediate = false): void {
+  private applyVisualState(immediate = false) {
     const targetScale = this.getTargetScale()
     const targetOpacity = this.getTargetOpacity()
 
@@ -150,7 +150,7 @@ export default class BaseButton extends cc.Component {
     this.applySelectedGlow(immediate)
   }
 
-  private applySelectedGlow(immediate = false): void {
+  private applySelectedGlow(immediate = false) {
     if (!this.selectedGlow) return
 
     cc.Tween.stopAllByTarget(this.selectedGlow)

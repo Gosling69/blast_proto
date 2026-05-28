@@ -12,7 +12,7 @@ export class AnimatedNumericValue {
     return this.value
   }
 
-  setImmediate(value: number): void {
+  setImmediate(value: number) {
     this.cancel()
 
     this.value = value
@@ -25,7 +25,7 @@ export class AnimatedNumericValue {
     easing?: string
     onUpdate: (value: number) => void
     onComplete?: () => void
-  }): void {
+  }) {
     this.cancel()
 
     this.state.x = this.value
@@ -62,7 +62,7 @@ export class AnimatedNumericValue {
     this.activeTween.start()
   }
 
-  cancel(): void {
+  cancel() {
     if (this.activeTween) {
       this.activeTween.stop()
       this.activeTween = null
@@ -71,7 +71,7 @@ export class AnimatedNumericValue {
     cc.Tween.stopAllByTarget(this.state)
   }
 
-  dispose(): void {
+  dispose() {
     this.cancel()
   }
 }

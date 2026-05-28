@@ -1,8 +1,6 @@
-import { TileType } from '../../board/models/TileData'
-import { GameModel, TGameStatus } from '../models/GameModel'
-import { TDestroyContext } from '../gameplay.types'
-
-const MIN_LENGTH_TO_DESTROY = 2
+import { TileType } from '../../board/board.types'
+import { TDestroyContext, TGameStatus } from '../gameplay.types'
+import { GameModel } from '../models/GameModel'
 
 export class RulesController {
   constructor() {}
@@ -10,7 +8,7 @@ export class RulesController {
   canSwap(gameModel: GameModel) {
     return gameModel.numTeleportBoosters > 0
   }
-  canDestroy(context: TDestroyContext): boolean {
+  canDestroy(context: TDestroyContext, minGroupSizeForDestroy: number): boolean {
     switch (context.type) {
       case 'bombClick':
         return context.targetsCount > 0
@@ -18,7 +16,7 @@ export class RulesController {
       case 'regularClick':
         switch (context.tileType) {
           case TileType.Regular:
-            return context.groupSize >= MIN_LENGTH_TO_DESTROY
+            return context.groupSize >= minGroupSizeForDestroy
 
           case TileType.SuperRow:
           case TileType.SuperColumn:

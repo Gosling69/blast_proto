@@ -1,13 +1,7 @@
-import { createGrid } from '../controllers/board.controllers.utils'
-import { BaseTileData } from './TileData'
+import { TBaseTileData, Cell, TShuffleMove } from '../board.types'
+import { createGrid } from '../board.utils'
 
-//TODO: хуевая типизация
-export type Cell<T> = T | null
-export type TShuffleMove<T> = {
-  tileFrom: T
-  tileTo: T
-}
-export class BoardModel<T extends BaseTileData = BaseTileData> {
+export class BoardModel<T extends TBaseTileData = TBaseTileData> {
   grid: Cell<T>[][] = []
 
   constructor(
@@ -17,7 +11,7 @@ export class BoardModel<T extends BaseTileData = BaseTileData> {
     this.grid = createGrid(widthTiles, heightTiles, null)
   }
 
-  remove(group: Array<BaseTileData>) {
+  remove(group: Array<TBaseTileData>) {
     const grid = this.grid
     group.forEach((toRemove) => {
       grid[toRemove.y][toRemove.x] = null

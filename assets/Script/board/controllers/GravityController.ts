@@ -1,16 +1,10 @@
+import { TTileData, TGravityMove } from '../board.types'
 import { BoardModel } from '../models/BoardModel'
-import { TileData } from '../models/TileData'
-
-export type TGravityMove = {
-  tile: TileData
-  yFrom: number
-  yTo: number
-}
 
 export class GravityController {
   constructor() {}
 
-  applyGravity(board: BoardModel<TileData>): TGravityMove[] {
+  applyGravity(board: BoardModel<TTileData>): TGravityMove[] {
     const { grid } = board
 
     const moves: TGravityMove[] = []

@@ -1,16 +1,16 @@
+import { TTileData, TileType } from '../board.types'
+import { floodFill, hasAvailableMoves } from '../board.utils'
 import { BoardModel } from '../models/BoardModel'
-import { TileData, TileType } from '../models/TileData'
-import { floodFill, hasAvailableMoves } from './board.controllers.utils'
 
 export class MatchController {
   constructor() {}
-  findGroup(board: BoardModel<TileData>, tile: TileData) {
+  findGroup(board: BoardModel<TTileData>, tile: TTileData) {
     if (tile.type !== TileType.Regular) {
       return []
     }
     return floodFill(board, tile)
   }
-  checkIsNoTurnsLeft(board: BoardModel<TileData>) {
-    return hasAvailableMoves(board)
+  checkIsNoTurnsLeft(board: BoardModel<TTileData>, minGroupSize: number) {
+    return hasAvailableMoves(board, minGroupSize)
   }
 }

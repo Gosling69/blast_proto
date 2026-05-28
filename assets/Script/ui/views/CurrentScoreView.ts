@@ -4,7 +4,7 @@ export class CurrentScoreView {
   private readonly animatedScore = new AnimatedNumericValue(0)
   constructor(private readonly label: cc.Label) {}
 
-  render(score: number, targetScore: number): void {
+  render(score: number, targetScore: number) {
     this.animatedScore.animateTo({
       target: score,
       duration: 0.35,
@@ -15,7 +15,7 @@ export class CurrentScoreView {
     })
   }
 
-  dispose(): void {
+  dispose() {
     this.animatedScore.dispose()
   }
 }

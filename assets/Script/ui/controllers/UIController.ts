@@ -1,4 +1,3 @@
-import { GameModel, TGameStatus } from '../../gameplay/models/GameModel'
 import { TBoosterType, TSelectedBooster } from '../../core/core.types'
 import { BoosterPanelView } from '../views/BoosterPanelView'
 import LevelSelectPanel from '../components/popUps/LevelSelectPanel'
@@ -9,40 +8,33 @@ import BoosterPanel from '../components/roundPanels/BoosterPanel'
 import { TDifficulty } from '../../shared/shared.types'
 import PopupLayer from '../components/popUps/PopupLayer'
 import Overlay from '../components/popUps/Overlay'
-export type TUIView = {
+import { THudViewModel } from '../ui.types'
+export type TUIComponents = {
   topPanel: TopPanel
   boosterPanel: BoosterPanel
   overlay: Overlay
   popupLayer: PopupLayer
   levelSelectPanel: LevelSelectPanel
 }
-//TODO: заменить поля на геттеры
 export class UIController {
   private boosterPanelView: BoosterPanelView
   private levelSelectView: LevelSelectView
   private topPanelView: TopPanelView
-
   private popupLayer: PopupLayer
   private overlay: Overlay
   onBombButtonClick: (() => void) | undefined = () => {}
   onSwapButtonClick: (() => void) | undefined = () => {}
-  difficultyOnClick: Record<TDifficulty, (() => void) | undefined> = {
-    easy: () => {},
-    medium: () => {},
-    hard: () => {},
-  }
+  onDifficultySelect: (difficulty: TDifficulty) => void = () => {}
 
-  constructor(private readonly view: TUIView) {
-    this.boosterPanelView = new BoosterPanelView(view.boosterPanel)
-    this.levelSelectView = new LevelSelectView(view.levelSelectPanel)
-    this.topPanelView = new TopPanelView(view.topPanel)
-    this.popupLayer = view.popupLayer
-    this.overlay = view.overlay
+  constructor(private readonly components: TUIComponents) {
+    this.boosterPanelView = new BoosterPanelView(components.boosterPanel)
+    this.levelSelectView = new LevelSelectView(components.levelSelectPanel)
+    this.topPanelView = new TopPanelView(components.topPanel)
+    this.popupLayer = components.popupLayer
+    this.overlay = components.overlay
     this.boosterPanelView.setOnClickHandler('bomb', () => this.onBombButtonClick?.())
     this.boosterPanelView.setOnClickHandler('teleport', () => this.onSwapButtonClick?.())
-    this.levelSelectView.setOnClickHandler(`easy`, () => this.difficultyOnClick.easy?.())
-    this.levelSelectView.setOnClickHandler(`medium`, () => this.difficultyOnClick.medium?.())
-    this.levelSelectView.setOnClickHandler(`hard`, () => this.difficultyOnClick.hard?.())
+    this.levelSelectView.setOnClickHandler((difficulty) => this.onDifficultySelect(difficulty))
   }
   disableGameUI() {
     this.boosterPanelView.disable()
@@ -50,7 +42,7 @@ export class UIController {
   enableGameUI() {
     this.boosterPanelView.enable()
   }
-  render(model: GameModel): void {
+  render(model: THudViewModel) {
     this.topPanelView.render(model)
     this.boosterPanelView.render({
       bomb: model.numBombBoosters,
@@ -67,12 +59,11 @@ export class UIController {
         break
     }
   }
-  public setLevelSelectOnClickHandler(callbackRecord: Partial<Record<TDifficulty, (() => void) | undefined>>): void {
-    for (const mode in callbackRecord) {
-      const callback = callbackRecord[mode]
-      if (!callback) continue
-      this.difficultyOnClick[mode] = callback
-    }
+  setLevelSelectOnClickHandler(callback: (difficulty: TDifficulty) => void) {
+    this.onDifficultySelect = callback
+  }
+  setSelectedBooster(mode: TSelectedBooster) {
+    this.boosterPanelView.setSelected(mode)
   }
   async playLevelSelectPanelSpawnAnimation() {
     return this.levelSelectView.playSpawnAnimation()
@@ -86,12 +77,9 @@ export class UIController {
   async playRoundUIDespawnAnimation() {
     return Promise.all([this.topPanelView.playDespawnAnimation(), this.boosterPanelView.playDespawnAnimation()])
   }
-  async showGameResult(status: TGameStatus) {
+  async showGameResult(status: string) {
     await Promise.all([this.overlay.show(), this.popupLayer.popup.show(status)])
 
     return this.overlay.hide()
-  }
-  public setSelectedBooster(mode: TSelectedBooster): void {
-    this.boosterPanelView.setSelected(mode)
   }
 }

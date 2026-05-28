@@ -1,20 +1,11 @@
 import { BoardModel } from '../board/models/BoardModel'
-import { GameModel, TGameStatus } from '../gameplay/models/GameModel'
 import { BoardView } from '../board/views/BoardView'
 import { GravityController } from '../board/controllers/GravityController'
 import { MatchController } from '../board/controllers/MatchController'
 import { SpawnController } from '../board/controllers/SpawnController'
 import { UIController } from '../ui/controllers/UIController'
-import { Events } from './EventEmitter'
-import { TileData, TileType } from '../board/models/TileData'
 import { BoosterController } from '../gameplay/controllers/BoosterController'
-import {
-  InputController,
-  TDestroyAction,
-  TInputAction,
-  TInputState,
-  TSwapAction,
-} from '../gameplay/controllers/InputController'
+
 import { RulesController } from '../gameplay/controllers/RulesController'
 import { ScoreController } from '../gameplay/controllers/ScoreController'
 import { SpecialTileController } from '../gameplay/controllers/SpecialTilesController'
@@ -22,12 +13,16 @@ import Board from '../board/components/Board'
 import UIRoot from '../ui/components/UIRoot'
 import { TDifficulty, TRoundConfig } from '../shared/shared.types'
 import { BASE_DIFFICULTIES, DEFAULT_CONFIG } from '../shared/shared.constants'
-import { inputStateToSelectedBooster } from './core.utils'
-import { TDestroyContext } from '../gameplay/gameplay.types'
+import { createDestroyContext, inputStateToSelectedBooster } from './core.utils'
+import { TDestroyAction, TGameStatus, TInputAction, TInputState, TSwapAction } from '../gameplay/gameplay.types'
+import { THudViewModel } from '../ui/ui.types'
+import { InputController } from '../gameplay/controllers/InputController'
+import { GameModel } from '../gameplay/models/GameModel'
+import { TTileData, TileType } from '../board/board.types'
 
 export type TTurnState = `idle` | `processing` | `finished`
 export class GameController {
-  private boardModel!: BoardModel<TileData>
+  private boardModel!: BoardModel<TTileData>
   private gameModel!: GameModel
   private config: TRoundConfig = DEFAULT_CONFIG
 
@@ -50,31 +45,24 @@ export class GameController {
     private readonly uiRootFrame: UIRoot,
   ) {
     this.boardView = new BoardView(this.boardFrame)
+    this.boardView.onTileClick = this.handleTileClick.bind(this)
     this.uiController = new UIController(this.uiRootFrame)
     this.uiController.onBombButtonClick = () => this.handleBombButtonClick()
     this.uiController.onSwapButtonClick = () => this.handleTeleportButtonClick()
-    this.uiController.setLevelSelectOnClickHandler({
-      easy: () => this.onDifficultySelected(`easy`),
-      medium: () => this.onDifficultySelected(`medium`),
-      hard: () => this.onDifficultySelected(`hard`),
-    })
+    this.uiController.setLevelSelectOnClickHandler(this.onDifficultySelected.bind(this))
     this.uiController.disableGameUI()
     ;(window as any)[`shuffle`] = this.shuffleBoard.bind(this)
   }
   async initializeGame() {
     return this.uiController.playLevelSelectPanelSpawnAnimation()
   }
-  private async onDifficultySelected(mode: TDifficulty) {
-    const config = BASE_DIFFICULTIES[mode]
-    this.config = config
-    await this.uiController.playLevelSelectPanelDeSpawnAnimation()
-    return this.initializeRound()
-  }
+
   private async initializeRound() {
-    this.boardModel = new BoardModel<TileData>(this.config.boardWidth, this.config.boardHeight)
+    this.boardModel = new BoardModel<TTileData>(this.config.boardWidth, this.config.boardHeight)
 
     this.gameModel = new GameModel(this.config)
-    this.uiController.render(this.gameModel)
+    console.warn(this.gameModel)
+    this.uiController.render(this.createHudViewModel())
     await this.boardView.playSpawnAnimation()
     await this.uiController.playRoundUISpawnAnimation()
 
@@ -82,53 +70,74 @@ export class GameController {
       width: this.boardModel.widthTiles,
       height: this.boardModel.heightTiles,
     })
-    this.spawnController.createInitialCells(this.boardModel, this.gameModel.difficultySettings)
+    this.spawnController.createInitialCells(
+      this.boardModel,
+      this.gameModel.difficultySettings,
+      this.gameModel.initialConnectedGroupsRatio,
+    )
     await this.boardView.renderByRows(this.boardModel)
     this.turnState = `idle`
-    this.subscribeToEvents()
     this.uiController.enableGameUI()
   }
-
-  private syncInputView(previous: TInputState, current: TInputState): void {
-    if (previous.type === 'swap' && previous.firstTile) {
-      this.boardView.setTileSelected(previous.firstTile, false)
-    }
-
-    if (current.type === 'swap' && current.firstTile) {
-      this.boardView.setTileSelected(current.firstTile, true)
-    }
-
-    this.uiController.setSelectedBooster(inputStateToSelectedBooster(current))
+  async disposeRound() {
+    await this.uiController.playRoundUIDespawnAnimation()
+    await this.boardView.clear()
   }
 
-  private async shuffleBoard() {
-    const moves = this.boardModel.shuffle()
-    const animationPromises = moves.map((move) => this.boardView.animateSwap(move.tileFrom, move.tileTo))
-    return Promise.all(animationPromises)
+  private async onAfterDestroy() {
+    const moves = this.gravityController.applyGravity(this.boardModel)
+
+    this.spawnController.createAdditionalRegularCells(this.boardModel, this.gameModel.difficultySettings)
+
+    const gravityPromise = this.boardView.animateGravity(moves)
+    const spawnPromise = this.boardView.renderByRows(this.boardModel)
+    await Promise.all([gravityPromise, spawnPromise])
+    return Promise.resolve()
   }
-  private async executeSwapAction(action: TSwapAction): Promise<void> {
-    if (!this.rulesController.canSwap(this.gameModel)) {
-      this.inputController.setDefault()
-      this.uiController.setSelectedBooster(null)
-      return
+  private async onTurnFinished() {
+    const gameStatus = this.checkGameResult()
+    const hasBoosters = this.gameModel.numBombBoosters > 0 || this.gameModel.numTeleportBoosters > 0
+    if (gameStatus === `lose` && this.gameModel.boardShufflesLeft > 0 && this.gameModel.numTurnsLeft > 0) {
+      await this.shuffleBoard()
+      this.gameModel.spendBoardShuffle()
+      this.turnState = `idle`
+      return Promise.resolve()
     }
-
-    const { firstTile, secondTile } = action
-    this.turnState = 'processing'
-
-    this.boardView.setTileSelected(firstTile, false)
-
-    this.boosterController.swapTiles(this.boardModel, firstTile, secondTile)
-
-    this.gameModel.spendSwapBooster()
-
-    await this.boardView.animateSwap(firstTile, secondTile)
-
-    this.uiController.render(this.gameModel)
-
-    return this.onFinishTurn()
+    if (gameStatus !== `playing`) {
+      return this.onRoundFinished(gameStatus)
+    }
+    this.turnState = `idle`
+    return Promise.resolve()
   }
-  private handleBombButtonClick(): void {
+  private async onRoundFinished(status: TGameStatus): Promise<void> {
+    this.uiController.disableGameUI()
+    this.gameModel.setStatus(status)
+    this.turnState = `finished`
+    this.uiController.render(this.createHudViewModel())
+    await this.uiController.showGameResult(status)
+    return this.restart()
+  }
+  private async onDifficultySelected(difficulty: TDifficulty) {
+    const config = {
+      ...BASE_DIFFICULTIES[difficulty],
+      groupSizeSettings: {
+        ...BASE_DIFFICULTIES[difficulty].groupSizeSettings,
+      },
+    }
+    this.config = config
+    await this.uiController.playLevelSelectPanelDeSpawnAnimation()
+    return this.initializeRound()
+  }
+  private async restart(): Promise<void> {
+    await this.disposeRound()
+    await this.initializeGame()
+  }
+  private canHandleInput(tile: TTileData): boolean {
+    const currentTile = this.boardModel.get(tile.x, tile.y)
+
+    return this.gameModel.status === 'playing' && currentTile?.id === tile.id && this.turnState === `idle`
+  }
+  private handleBombButtonClick() {
     if (this.turnState !== 'idle') return
 
     const previousState = this.inputController.getState()
@@ -141,7 +150,7 @@ export class GameController {
 
     this.syncInputView(previousState, this.inputController.getState())
   }
-  private handleTeleportButtonClick(): void {
+  private handleTeleportButtonClick() {
     if (this.turnState !== 'idle') return
 
     const previousState = this.inputController.getState()
@@ -154,7 +163,8 @@ export class GameController {
 
     this.syncInputView(previousState, this.inputController.getState())
   }
-  private async handleTileClick(tile: TileData): Promise<void> {
+
+  private async handleTileClick(tile: TTileData): Promise<void> {
     if (!this.canHandleInput(tile)) return
 
     const previousState = this.inputController.getState()
@@ -179,22 +189,44 @@ export class GameController {
         return this.executeDestroyAction(action)
     }
   }
+  private selectSwapTile(tile: TTileData) {
+    this.boardView.setTileSelected(tile, true)
+  }
+  private deSelectSwapTile(tile: TTileData) {
+    this.boardView.setTileSelected(tile, false)
+  }
+  private async executeSwapAction(action: TSwapAction): Promise<void> {
+    if (!this.rulesController.canSwap(this.gameModel)) {
+      this.inputController.setDefault()
+      this.uiController.setSelectedBooster(null)
+      return
+    }
+
+    const { firstTile, secondTile } = action
+    this.turnState = 'processing'
+
+    this.boardView.setTileSelected(firstTile, false)
+
+    this.boosterController.swapTiles(this.boardModel, firstTile, secondTile)
+
+    this.gameModel.spendSwapBooster()
+
+    await this.boardView.animateSwap(firstTile, secondTile)
+
+    this.uiController.render(this.createHudViewModel())
+
+    return this.onTurnFinished()
+  }
   private async executeDestroyAction(action: TDestroyAction) {
     this.turnState = `processing`
     const { tile } = action
     const targets = this.gatherDestroyTargets(tile, action)
     await this.applyDestroyAction(tile, targets, action)
-    return this.onFinishTurn()
+    return this.onTurnFinished()
   }
-  private selectSwapTile(tile: TileData) {
-    this.boardView.setTileSelected(tile, true)
-  }
-  private deSelectSwapTile(tile: TileData) {
-    this.boardView.setTileSelected(tile, false)
-  }
-  private async applyDestroyAction(clickedTile: TileData, targets: TileData[], action: TInputAction) {
-    const context = this.createDestroyContext(action, clickedTile, targets)
-    if (!this.rulesController.canDestroy(context)) {
+  private async applyDestroyAction(clickedTile: TTileData, targets: TTileData[], action: TInputAction) {
+    const context = createDestroyContext(action, clickedTile, targets)
+    if (!this.rulesController.canDestroy(context, this.gameModel.minGroupSizeForTurn)) {
       this.boardView.shakeTile(clickedTile)
       return
     }
@@ -203,6 +235,25 @@ export class GameController {
     await this.destroyTileGroup(targets, clickedTile, shouldSpawnSuperTile)
     return this.onAfterDestroy()
   }
+
+  private async destroyTileGroup(
+    group: TTileData[],
+    clickedTile: TTileData,
+    shouldSpawnSuperTile = false,
+  ): Promise<void> {
+    this.boardModel.remove(group)
+    await this.boardView.removeTiles(group)
+    const score = this.scoreController.calculate(group.length)
+    this.gameModel.addScore(score)
+    this.uiController.render(this.createHudViewModel())
+    if (shouldSpawnSuperTile) {
+      const { x, y } = clickedTile
+      const superTile = this.spawnController.createSuperTile(x, y)
+      this.boardModel.grid[y][x] = superTile
+      this.boardView.spawnTile(superTile, false)
+    }
+  }
+
   private spendResourcesForAction(action: TInputAction) {
     this.gameModel.spendTurn()
     switch (action.type) {
@@ -210,39 +261,41 @@ export class GameController {
         this.gameModel.spendBombBooster()
     }
   }
-
-  private createDestroyContext(action: TInputAction, clickedTile: TileData, targets: TileData[]): TDestroyContext {
-    if (action.type === 'bombTileClick') {
-      return {
-        type: 'bombClick',
-        targetsCount: targets.length,
-      }
+  private checkGameResult() {
+    const hasAvailableMoves = this.matchController.checkIsNoTurnsLeft(
+      this.boardModel,
+      this.gameModel.minGroupSizeForTurn,
+    )
+    return this.rulesController.getGameResult(this.gameModel, hasAvailableMoves)
+  }
+  private async shuffleBoard() {
+    const moves = this.boardModel.shuffle()
+    const animationPromises = moves.map((move) => this.boardView.animateSwap(move.tileFrom, move.tileTo))
+    return Promise.all(animationPromises)
+  }
+  private syncInputView(previous: TInputState, current: TInputState) {
+    if (previous.type === 'swap' && previous.firstTile) {
+      this.boardView.setTileSelected(previous.firstTile, false)
     }
 
-    switch (clickedTile.type) {
-      case TileType.Regular:
-        return {
-          type: 'regularClick',
+    if (current.type === 'swap' && current.firstTile) {
+      this.boardView.setTileSelected(current.firstTile, true)
+    }
 
-          tileType: TileType.Regular,
+    this.uiController.setSelectedBooster(inputStateToSelectedBooster(current))
+  }
 
-          groupSize: targets.length,
-        }
-
-      case TileType.SuperRow:
-      case TileType.SuperColumn:
-      case TileType.SuperBomb:
-      case TileType.SuperAll:
-        return {
-          type: 'regularClick',
-
-          tileType: clickedTile.type,
-
-          targetsCount: targets.length,
-        }
+  private createHudViewModel(): THudViewModel {
+    return {
+      score: this.gameModel.score,
+      targetScore: this.gameModel.targetScore,
+      numTurnsLeft: this.gameModel.numTurnsLeft,
+      numBombBoosters: this.gameModel.numBombBoosters,
+      numTeleportBoosters: this.gameModel.numTeleportBoosters,
     }
   }
-  private gatherDefaultTargets(tile: TileData): TileData[] {
+
+  private gatherDefaultTargets(tile: TTileData): TTileData[] {
     switch (tile.type) {
       case TileType.Regular:
         return this.matchController.findGroup(this.boardModel, tile)
@@ -254,7 +307,7 @@ export class GameController {
         return this.specialTileController.getTargets(this.boardModel, tile, this.gameModel)
     }
   }
-  private gatherDestroyTargets(tile: TileData, action: TInputAction): TileData[] {
+  private gatherDestroyTargets(tile: TTileData, action: TInputAction): TTileData[] {
     switch (action.type) {
       case 'defaultTileClick':
         return this.gatherDefaultTargets(tile)
@@ -265,84 +318,5 @@ export class GameController {
       default:
         return []
     }
-  }
-
-  private async destroyTileGroup(
-    group: TileData[],
-    clickedTile: TileData,
-    shouldSpawnSuperTile = false,
-  ): Promise<void> {
-    this.boardModel.remove(group)
-    await this.boardView.removeTiles(group)
-    const score = this.scoreController.calculate(group.length)
-    this.gameModel.addScore(score)
-    this.uiController.render(this.gameModel)
-    if (shouldSpawnSuperTile) {
-      const { x, y } = clickedTile
-      const superTile = this.spawnController.createSuperTile(x, y)
-      this.boardModel.grid[y][x] = superTile
-      this.boardView.spawnTile(superTile, false)
-    }
-  }
-
-  private async onAfterDestroy() {
-    const moves = this.gravityController.applyGravity(this.boardModel)
-
-    this.spawnController.createAdditionalRegularCells(this.boardModel)
-
-    const gravityPromise = this.boardView.animateGravity(moves)
-    const spawnPromise = this.boardView.renderByRows(this.boardModel)
-    await Promise.all([gravityPromise, spawnPromise])
-    return Promise.resolve()
-  }
-
-  private checkGameResult() {
-    const hasAvailableMoves = this.matchController.checkIsNoTurnsLeft(this.boardModel)
-    return this.rulesController.getGameResult(this.gameModel, hasAvailableMoves)
-  }
-  private subscribeToEvents() {
-    Events.on(`tileClicked`, this.onClickWithContext)
-  }
-  private unSubscribeFromEvents() {
-    Events.off(`tileClicked`, this.onClickWithContext)
-  }
-  private canHandleInput(tile: TileData): boolean {
-    const currentTile = this.boardModel.get(tile.x, tile.y)
-
-    return this.gameModel.status === 'playing' && currentTile?.id === tile.id && this.turnState === `idle`
-  }
-
-  private async onFinishTurn() {
-    const gameStatus = this.checkGameResult()
-    if (gameStatus === `lose` && this.gameModel.boardShufflesLeft > 0 && this.gameModel.numTurnsLeft > 0) {
-      await this.shuffleBoard()
-      this.gameModel.spendBoardShuffle()
-      this.turnState = `idle`
-      return Promise.resolve()
-    }
-    if (gameStatus !== `playing`) {
-      return this.onRoundFinished(gameStatus)
-    }
-    this.turnState = `idle`
-    return Promise.resolve()
-  }
-  onResize() {}
-  private async onRoundFinished(status: TGameStatus): Promise<void> {
-    this.uiController.disableGameUI()
-    this.gameModel.setStatus(status)
-    this.turnState = `finished`
-    this.uiController.render(this.gameModel)
-    await this.uiController.showGameResult(status)
-    return this.restart()
-  }
-  private async restart(): Promise<void> {
-    await this.disposeRound()
-    await this.initializeGame()
-  }
-  async disposeRound() {
-    //TODO: remove current round state
-    await this.uiController.playRoundUIDespawnAnimation()
-    await this.boardView.clear()
-    this.unSubscribeFromEvents()
   }
 }

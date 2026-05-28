@@ -1,4 +1,4 @@
-import { TBoosterType, TSelectedBooster } from '../../core/core.types'
+import { TBoosterType, TSelectedBooster } from '../../shared/shared.types'
 import { tweenToPromise } from '../../shared/shared.utils'
 import BoosterPanel from '../components/roundPanels/BoosterPanel'
 import { BoosterButtonView } from './BoosterButtonView'
@@ -9,9 +9,9 @@ export class BoosterPanelView {
 
   constructor(private readonly component: BoosterPanel) {
     this.buttons = {
-      bomb: new BoosterButtonView(component.bombButton, 'bomb', component.getIcon('bomb')),
+      bomb: new BoosterButtonView(component.bombButton, component.getIcon('bomb')),
 
-      teleport: new BoosterButtonView(component.teleportButton, 'teleport', component.getIcon('teleport')),
+      teleport: new BoosterButtonView(component.teleportButton, component.getIcon('teleport')),
     }
     this.component.setVisible(false)
   }
@@ -51,22 +51,22 @@ export class BoosterPanelView {
     this.buttons.bomb.setEnabled(true)
     this.buttons.teleport.setEnabled(true)
   }
-  public render(counts: Record<TBoosterType, number>): void {
+  public render(counts: Record<TBoosterType, number>) {
     this.buttons.bomb.render(counts.bomb)
     this.buttons.teleport.render(counts.teleport)
   }
 
-  public setSelected(type: TSelectedBooster): void {
+  public setSelected(type: TSelectedBooster) {
     this.buttons.bomb.setSelected(type === 'bomb')
     this.buttons.teleport.setSelected(type === 'teleport')
   }
 
-  public setOnClickHandler(type: TBoosterType, callback: (() => void) | undefined): void {
+  public setOnClickHandler(type: TBoosterType, callback: (() => void) | undefined) {
     if (!callback) return
     this.buttons[type].setClickHandler(callback)
   }
 
-  public dispose(): void {
+  public dispose() {
     this.buttons.bomb.dispose()
     this.buttons.teleport.dispose()
   }

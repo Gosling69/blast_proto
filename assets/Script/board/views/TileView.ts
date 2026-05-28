@@ -1,18 +1,21 @@
 import { tweenToPromise } from '../../shared/shared.utils'
 import Tile from '../components/Tile'
-import { TileData } from '../models/TileData'
 import { shakeNode } from '../board.utils'
+import { TTileData } from '../board.types'
 
 export class TileView {
   private invalidClickTween: cc.Tween | null = null
 
-  constructor(readonly component: Tile) {}
+  constructor(
+    readonly component: Tile,
+    public data: TTileData,
+  ) {}
   get node(): cc.Node {
     return this.component.node
   }
-  //TODO: data в компоненте не нужна (можно убрать events)?
-  setup(tile: TileData, frame: cc.SpriteFrame): void {
-    this.component.setup(tile, frame)
+  setup(frame: cc.SpriteFrame, clickHandler: () => void) {
+    this.component.setup(frame)
+    this.component.setClickHandler(clickHandler)
   }
   public async playInvalidClickAnimation(): Promise<void> {
     this.stopInvalidClickAnimation()
@@ -45,7 +48,7 @@ export class TileView {
     this.node.angle = startAngle
     this.node.scale = startScale
   }
-  public stopInvalidClickAnimation(): void {
+  public stopInvalidClickAnimation() {
     if (this.invalidClickTween) {
       this.invalidClickTween.stop()
       this.invalidClickTween = null
@@ -73,7 +76,7 @@ export class TileView {
     await this.playDestroyAnimation()
     this.node.destroy()
   }
-  public setSelected(value: boolean): void {
+  public setSelected(value: boolean) {
     if (this.component.selectedGlow) {
       this.component.selectedGlow.active = value
     } else {

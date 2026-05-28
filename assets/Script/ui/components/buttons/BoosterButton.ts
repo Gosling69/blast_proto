@@ -12,11 +12,11 @@ const { ccclass, property } = cc._decorator
 export default class BoosterButton extends BaseButton {
   @property(cc.Sprite)
   icon: cc.Sprite = null
-  setup(icon: cc.SpriteFrame): void {
+  setup(icon: cc.SpriteFrame) {
     this.icon.spriteFrame = icon
     this.setSelected(false)
   }
-  setCount(count: number): void {
+  setCount(count: number) {
     this.label.string = `${count}`
   }
 }

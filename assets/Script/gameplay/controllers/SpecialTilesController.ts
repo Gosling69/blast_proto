@@ -1,8 +1,8 @@
+import { TTileData, TileType } from '../../board/board.types'
 import { BoardModel } from '../../board/models/BoardModel'
-import { TileData, TileType } from '../../board/models/TileData'
 import { GameModel } from '../models/GameModel'
 export class SpecialTileController {
-  getTargets(board: BoardModel<TileData>, tile: TileData, gameModel: GameModel): TileData[] {
+  getTargets(board: BoardModel<TTileData>, tile: TTileData, gameModel: GameModel): TTileData[] {
     switch (tile.type) {
       case TileType.SuperRow:
         return this.getRowTargets(board, tile.y)
@@ -20,12 +20,12 @@ export class SpecialTileController {
     }
   }
 
-  private getRowTargets(board: BoardModel<TileData>, y: number): TileData[] {
-    return board.grid[y].filter(Boolean) as TileData[]
+  private getRowTargets(board: BoardModel<TTileData>, y: number): TTileData[] {
+    return board.grid[y].filter(Boolean) as TTileData[]
   }
 
-  private getColumnTargets(board: BoardModel<TileData>, x: number): TileData[] {
-    const result: TileData[] = []
+  private getColumnTargets(board: BoardModel<TTileData>, x: number): TTileData[] {
+    const result: TTileData[] = []
 
     for (let y = 0; y < board.grid.length; y++) {
       const tile = board.grid[y][x]
@@ -35,8 +35,13 @@ export class SpecialTileController {
     return result
   }
 
-  private getRadiusTargets(board: BoardModel<TileData>, centerX: number, centerY: number, radius: number): TileData[] {
-    const result: TileData[] = []
+  private getRadiusTargets(
+    board: BoardModel<TTileData>,
+    centerX: number,
+    centerY: number,
+    radius: number,
+  ): TTileData[] {
+    const result: TTileData[] = []
 
     for (let y = centerY - radius; y <= centerY + radius; y++) {
       for (let x = centerX - radius; x <= centerX + radius; x++) {
@@ -50,7 +55,7 @@ export class SpecialTileController {
     return result
   }
 
-  private getAllTargets(board: BoardModel<TileData>): TileData[] {
-    return board.flat().filter(Boolean) as TileData[]
+  private getAllTargets(board: BoardModel<TTileData>): TTileData[] {
+    return board.flat().filter(Boolean) as TTileData[]
   }
 }

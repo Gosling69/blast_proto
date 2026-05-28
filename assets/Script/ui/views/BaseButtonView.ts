@@ -6,15 +6,15 @@ export class BaseButtonView<T extends BaseButton> {
   setEnabled(value: boolean) {
     this.component.setEnabled(value)
   }
-  public setSelected(value: boolean): void {
+  public setSelected(value: boolean) {
     this.component.setSelected(value)
   }
 
-  public setClickHandler(callback: () => void): void {
+  public setClickHandler(callback: () => void) {
     this.component.setClickHandler(callback)
   }
 
-  public dispose(): void {
+  public dispose() {
     this.component.dispose()
   }
 }

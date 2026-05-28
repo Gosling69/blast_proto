@@ -20,15 +20,26 @@ export type TCellPosition = {
   x: number
   y: number
 }
-export type BaseTileData = {
+export type TBaseTileData = {
   id: string
   type: TileType
 } & TCellPosition
-export type RegularTileData = BaseTileData & {
+export type TRegularTileData = TBaseTileData & {
   type: TileType.Regular
   color: TileColor
 }
-export type SuperTileData = BaseTileData & {
+export type TSuperTileData = TBaseTileData & {
   type: TileType.SuperRow | TileType.SuperColumn | TileType.SuperBomb | TileType.SuperAll
 }
-export type TileData = RegularTileData | SuperTileData
+export type TTileData = TRegularTileData | TSuperTileData
+
+export type Cell<T> = T | null
+export type TShuffleMove<T> = {
+  tileFrom: T
+  tileTo: T
+}
+export type TGravityMove = {
+  tile: TTileData
+  yFrom: number
+  yTo: number
+}

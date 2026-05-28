@@ -10,11 +10,12 @@ export class LevelSelectView {
   private readonly buttons: Record<TDifficulty, BaseButtonView<BaseButton>>
 
   constructor(private readonly component: LevelSelectPanel) {
-    const { easy, medium, hard } = this.component.buttons
+    const { easy, medium, hard, nightmare } = this.component.buttons
     this.buttons = {
       easy: new BaseButtonView(easy),
       medium: new BaseButtonView(medium),
       hard: new BaseButtonView(hard),
+      nightmare: new BaseButtonView(nightmare),
     }
   }
   async playSpawnAnimation() {
@@ -46,11 +47,16 @@ export class LevelSelectView {
     return Promise.resolve()
   }
 
-  public setOnClickHandler(type: TDifficulty, callback: (() => void) | undefined): void {
+  public setOnClickHandler(callback: ((difficulty: TDifficulty) => void) | undefined) {
     if (!callback) return
-    this.buttons[type].setClickHandler(callback)
+    for (const mode in this.buttons) {
+      const button = this.buttons[mode] as BaseButtonView<BaseButton>
+      button.setClickHandler(() => {
+        callback(mode as TDifficulty)
+      })
+    }
   }
-  public dispose(): void {
+  public dispose() {
     this.component.dispose()
   }
 }

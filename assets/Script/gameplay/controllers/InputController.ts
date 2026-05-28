@@ -1,17 +1,5 @@
-import { Cell } from '../../board/models/BoardModel'
-import { TileData } from '../../board/models/TileData'
-export type TInputModeType = `default` | `bomb` | `swap`
-export type TInputState = { type: 'default' } | { type: 'bomb' } | { type: 'swap'; firstTile: Cell<TileData> }
-
-export type TDestroyAction = { type: 'defaultTileClick'; tile: TileData } | { type: 'bombTileClick'; tile: TileData }
-
-export type TSwapAction = { type: 'swapApply'; firstTile: TileData; secondTile: TileData }
-
-export type TSelectionAction =
-  | { type: 'swapSelectFirst'; tile: TileData }
-  | { type: 'swapDeselectFirst'; tile: TileData }
-
-export type TInputAction = TDestroyAction | TSwapAction | TSelectionAction
+import { TTileData } from '../../board/board.types'
+import { TInputState, TInputAction } from '../gameplay.types'
 
 export class InputController {
   private state: TInputState = { type: 'default' }
@@ -20,22 +8,22 @@ export class InputController {
     return this.state
   }
 
-  setDefault(): void {
+  setDefault() {
     this.state = { type: 'default' }
   }
 
-  enableBomb(): void {
+  enableBomb() {
     this.state = { type: 'bomb' }
   }
 
-  enableSwap(): void {
+  enableSwap() {
     this.state = {
       type: 'swap',
       firstTile: null,
     }
   }
 
-  resolveTileClick(tile: TileData): TInputAction {
+  resolveTileClick(tile: TTileData): TInputAction {
     switch (this.state.type) {
       case 'default':
         return {

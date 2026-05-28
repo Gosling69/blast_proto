@@ -11,7 +11,7 @@ const { ccclass, property } = cc._decorator
 export default class Overlay extends cc.Component {
   @property(cc.Sprite)
   sprite: cc.Sprite = null
-  onLoad(): void {
+  onLoad() {
     this.resize()
 
     cc.view.on('canvas-resize', this.resize, this)
@@ -20,12 +20,12 @@ export default class Overlay extends cc.Component {
     this.node.opacity = 0
   }
 
-  onDestroy(): void {
+  onDestroy() {
     cc.view.off('canvas-resize', this.resize, this)
     window.removeEventListener('resize', this.resize)
   }
 
-  private resize = (): void => {
+  private resize = () => {
     const frame = this.sprite.spriteFrame
     if (!frame) return
 

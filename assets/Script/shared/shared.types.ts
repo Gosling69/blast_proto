@@ -1,6 +1,4 @@
-//добавить какую нибудь циферку отвечающую за количество очков которые можно выбить в начале уровня
-export type TInitialSpawnSettings = {
-  connectedRatio: number
+export type TGroupSizeSettings = {
   minGroupSize: number
   maxGroupSize: number
 }
@@ -13,8 +11,14 @@ export type TRoundConfig = {
   boardHeight: number
   boardWidth: number
   groupSizeForSuperSpawn: number
-  initialSpawnSettings: TInitialSpawnSettings
+  groupSizeSettings: TGroupSizeSettings
+  initialConnectedGroupsRatio: number
   boardShufflesLeft: number
+  minGroupSizeForTurn: number
 }
-export type TDifficulty = `easy` | `medium` | `hard`
+export const DifficultyLevels = [`easy`, `medium`, `hard`, `nightmare`] as const
+export type TDifficulty = (typeof DifficultyLevels)[number]
+
 export type TGameDifficulties = Record<TDifficulty, TRoundConfig>
+export type TBoosterType = `bomb` | `teleport`
+export type TSelectedBooster = TBoosterType | null

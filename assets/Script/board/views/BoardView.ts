@@ -1,11 +1,9 @@
-import { TGravityMove } from '../controllers/GravityController'
-//tuta
 import { BoardModel } from '../models/BoardModel'
 import Tile from '../components/Tile'
-import { TileColor, TileData, TileType } from '../models/TileData'
 import { TileView } from './TileView'
 import Board from '../components/Board'
 import { sleep, tweenToPromise } from '../../shared/shared.utils'
+import { TileColor, TileType, TTileData, TGravityMove } from '../board.types'
 export type TColorFrames = Record<TileColor, cc.SpriteFrame>
 export type TParticleColors = Record<TileColor, cc.Color>
 export type TSpecialFrames = Record<Exclude<TileType, TileType.Regular>, cc.SpriteFrame>
@@ -15,8 +13,7 @@ export type TBoardConfig = {
 }
 const VERTICAL_PADDING = 20
 const HORIZONTAL_PADDING = 35
-const TARGET_Y_POS = 25
-//окей, переименовать в BoardLayout и сделать отдельно BoardView как Cocos Node
+const TARGET_Y_POS = 0
 export class BoardView {
   private readonly spawnFallSpeed = 50 // px/sec
   private readonly minSpawnDuration = 0.18
@@ -35,6 +32,8 @@ export class BoardView {
   private usableHeight: number
   private gridWidth!: number
   private gridHeight!: number
+  onTileClick: ((tile: TTileData) => void) | undefined = () => {}
+
   constructor(private component: Board) {
     this.tilePrefab = component.tilePrefab
     this.explosionParticlePrefab = component.explosionParticlePrefab
@@ -44,7 +43,7 @@ export class BoardView {
     this.usableHeight = this.component.node.height - VERTICAL_PADDING * 2
     this.component.setVisible(false)
   }
-  shakeTile(tile: TileData) {
+  shakeTile(tile: TTileData) {
     const tileView = this.tileViews.get(tile.id)
     if (!tileView) return
     tileView.playInvalidClickAnimation()
@@ -87,14 +86,14 @@ export class BoardView {
     this.gridWidth = this.tileSize * boardConfig.width
     this.gridHeight = this.tileSize * boardConfig.height
   }
-  setTileSelected(data: TileData, value: boolean) {
+  setTileSelected(data: TTileData, value: boolean) {
     const tileView = this.tileViews.get(data.id)
     if (!tileView) {
       throw new Error(`tile not found for select`)
     }
     tileView.setSelected(value)
   }
-  async animateSwap(firstTile: TileData, secondTile: TileData) {
+  async animateSwap(firstTile: TTileData, secondTile: TTileData) {
     const firstTileComponent = this.tileViews.get(firstTile.id)
     if (!firstTileComponent) {
       throw new Error(`first tile for swap not found`)
@@ -114,7 +113,7 @@ export class BoardView {
     await Promise.all(animationPromises)
     return Promise.resolve()
   }
-  async renderByRows(board: BoardModel<TileData>): Promise<void> {
+  async renderByRows(board: BoardModel<TTileData>): Promise<void> {
     const sortedRows = board.groupByRows()
     for (let y = sortedRows.length - 1; y >= 0; y--) {
       const rowTiles = sortedRows[y]
@@ -155,7 +154,6 @@ export class BoardView {
   }
   private getFallAnimationDuration(distance: number) {
     return this.clamp(distance / this.spawnFallSpeed, this.minSpawnDuration, this.maxSpawnDuration)
-    return distance / this.spawnFallSpeed
   }
   private clamp(value: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, value))
@@ -190,16 +188,14 @@ export class BoardView {
       ),
     )
   }
-  //TODO: add animation
-  async removeTiles(tiles: Array<TileData>) {
+  async removeTiles(tiles: Array<TTileData>) {
     const animationPromises: Array<Promise<void>> = []
     for (const tile of tiles) {
       animationPromises.push(this.destroyAndRemoveFromMapSingleTile(tile.id))
     }
     return Promise.all(animationPromises)
   }
-  //TODO: spawnAnimation
-  async spawnTile(tile: TileData, animated: boolean = false) {
+  async spawnTile(tile: TTileData, animated: boolean = false) {
     const node = cc.instantiate(this.tilePrefab)
 
     node.parent = this.component.node
@@ -216,9 +212,11 @@ export class BoardView {
     if (!tileComponent) {
       throw new Error('Tile prefab does not contain TileView component')
     }
-    const tileView = new TileView(tileComponent)
+    const tileView = new TileView(tileComponent, tile)
 
-    tileView.setup(tile, this.getFrame(tile))
+    tileView.setup(this.getFrame(tile), () => {
+      this.onTileClick(tile)
+    })
 
     this.tileViews.set(tile.id, tileView)
 
@@ -234,7 +232,7 @@ export class BoardView {
     const tileView = this.tileViews.get(id)
     if (!tileView) return Promise.resolve()
     const position = tileView.node.position
-    const data = tileView.component.data
+    const data = tileView.data
     const colors = this.component.getParticleColors()
     return (async () => {
       await tileView.destroy()
@@ -242,7 +240,7 @@ export class BoardView {
       this.tileViews.delete(id)
     })()
   }
-  private getFrame(tile: TileData): cc.SpriteFrame {
+  private getFrame(tile: TTileData): cc.SpriteFrame {
     if (tile.type === TileType.Regular) {
       return this.regularTileFrames[tile.color]
     }

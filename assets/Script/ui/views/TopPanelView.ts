@@ -1,6 +1,6 @@
-import { GameModel } from '../../gameplay/models/GameModel'
 import { tweenToPromise } from '../../shared/shared.utils'
 import TopPanel from '../components/roundPanels/TopPanel'
+import { THudViewModel } from '../ui.types'
 import { CurrentScoreView } from './CurrentScoreView'
 const TARGET_Y_POS = 0
 const FADE_Y_POS = 735
@@ -38,7 +38,7 @@ export class TopPanelView {
     this.component.setVisible(false)
     return Promise.resolve()
   }
-  render(model: GameModel) {
+  render(model: THudViewModel) {
     this.currentScore.render(model.score, model.targetScore)
     this.component.turnsLabel.string = `${model.numTurnsLeft}`
   }

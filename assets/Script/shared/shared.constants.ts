@@ -1,4 +1,4 @@
-import { TInitialSpawnSettings as TBoardSpawnSettings, TRoundConfig, TGameDifficulties } from './shared.types'
+import { TGroupSizeSettings as TBoardSpawnSettings, TRoundConfig, TGameDifficulties } from './shared.types'
 
 const BOARD_WIDTH = 8
 const BOARD_HEIGHT = 8
@@ -9,11 +9,12 @@ const NUM_BOMB_BOOSTERS = 5
 const BOMB_RADIUS = 1
 const NUM_TILES_FOR_SUPER_TILE_SPAWN = 6
 const NUM_BOARD_SHUFFLES_LEFT = 3
-const DEFAULT_DIFFICULITY: TBoardSpawnSettings = {
-  connectedRatio: 0.2,
+const MIN_GROUP_SIZE_FOR_DESTROY = 2
+const DEFAULT_GROUP_SIZE_SETTINGS: TBoardSpawnSettings = {
   minGroupSize: 2,
   maxGroupSize: 5,
 }
+const DEFAULT_CONNECTED_RATIO = 0.2
 
 export const DEFAULT_CONFIG: TRoundConfig = {
   targetScore: TARGET_SCORE,
@@ -24,8 +25,10 @@ export const DEFAULT_CONFIG: TRoundConfig = {
   boardHeight: BOARD_HEIGHT,
   boardWidth: BOARD_WIDTH,
   groupSizeForSuperSpawn: NUM_TILES_FOR_SUPER_TILE_SPAWN,
-  initialSpawnSettings: DEFAULT_DIFFICULITY,
+  groupSizeSettings: DEFAULT_GROUP_SIZE_SETTINGS,
   boardShufflesLeft: NUM_BOARD_SHUFFLES_LEFT,
+  minGroupSizeForTurn: MIN_GROUP_SIZE_FOR_DESTROY,
+  initialConnectedGroupsRatio: DEFAULT_CONNECTED_RATIO,
 }
 export const BASE_DIFFICULTIES: TGameDifficulties = {
   easy: {
@@ -38,11 +41,12 @@ export const BASE_DIFFICULTIES: TGameDifficulties = {
     groupSizeForSuperSpawn: 5,
     numTurnsLeft: 20,
     targetScore: 100,
-    initialSpawnSettings: {
+    initialConnectedGroupsRatio: 0.5,
+    groupSizeSettings: {
       minGroupSize: 3,
       maxGroupSize: 6,
-      connectedRatio: 0.5,
     },
+    minGroupSizeForTurn: 2,
   },
   medium: {
     boardHeight: 8,
@@ -52,13 +56,14 @@ export const BASE_DIFFICULTIES: TGameDifficulties = {
     numBombBoosters: 4,
     numTeleportBoosters: 4,
     groupSizeForSuperSpawn: 5,
-    numTurnsLeft: 15,
+    numTurnsLeft: 17,
     targetScore: 140,
-    initialSpawnSettings: {
+    initialConnectedGroupsRatio: 0.3,
+    groupSizeSettings: {
       minGroupSize: 2,
       maxGroupSize: 5,
-      connectedRatio: 0.3,
     },
+    minGroupSizeForTurn: 2,
   },
   hard: {
     boardHeight: 9,
@@ -70,10 +75,28 @@ export const BASE_DIFFICULTIES: TGameDifficulties = {
     groupSizeForSuperSpawn: 6,
     numTurnsLeft: 15,
     targetScore: 170,
-    initialSpawnSettings: {
+    initialConnectedGroupsRatio: 0.2,
+    groupSizeSettings: {
       minGroupSize: 2,
       maxGroupSize: 4,
-      connectedRatio: 0.2,
     },
+    minGroupSizeForTurn: 2,
   },
-}
+  nightmare: {
+    boardHeight: 9,
+    boardWidth: 9,
+    boardShufflesLeft: 3,
+    bombRadius: 1,
+    numBombBoosters: 2,
+    numTeleportBoosters: 2,
+    groupSizeForSuperSpawn: 6,
+    numTurnsLeft: 20,
+    targetScore: 200,
+    initialConnectedGroupsRatio: 0.01,
+    groupSizeSettings: {
+      minGroupSize: 2,
+      maxGroupSize: 3,
+    },
+    minGroupSizeForTurn: 2,
+  },
+} as const

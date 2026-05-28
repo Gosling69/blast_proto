@@ -15,7 +15,7 @@ export default class RoundOverPopup extends cc.Component {
   @property(cc.Label)
   messageLabel: cc.Label = null
 
-  onLoad(): void {
+  onLoad() {
     this.node.y = INITIAL_POSITION
     this.node.active = false
   }

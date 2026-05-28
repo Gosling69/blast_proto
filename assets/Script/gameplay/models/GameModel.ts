@@ -1,56 +1,58 @@
-import { TInitialSpawnSettings, TRoundConfig } from '../../shared/shared.types'
-
-export type TGameStatus = `win` | `lose` | `playing`
+import { TRoundConfig } from '../../shared/shared.types'
+import { TGameStatus } from '../gameplay.types'
 
 export class GameModel {
   public score = 0
-  public numTurnsLeft: number
-  public targetScore: number
-  public numBombBoosters: number
-  public bombRadius: number
-  public numTeleportBoosters: number
-  public groupSizeForSuperSpawn: number
-  public boardShufflesLeft: number
-  public difficultySettings: TInitialSpawnSettings
 
   public status: TGameStatus = `playing`
 
-  constructor(config: TRoundConfig) {
-    const {
-      targetScore,
-      numTurnsLeft,
-      numBombBoosters,
-      numTeleportBoosters: numSwapBoosters,
-      groupSizeForSuperSpawn,
-      initialSpawnSettings: difficultySettings,
-      boardShufflesLeft,
-      bombRadius,
-    } = config
-    this.targetScore = targetScore
-    this.numTurnsLeft = numTurnsLeft
-    this.numBombBoosters = numBombBoosters
-    this.numTeleportBoosters = numSwapBoosters
-    this.groupSizeForSuperSpawn = groupSizeForSuperSpawn
-    this.difficultySettings = difficultySettings
-    this.boardShufflesLeft = boardShufflesLeft
-    this.bombRadius = bombRadius
+  constructor(private roundConfig: TRoundConfig) {}
+  get numBombBoosters() {
+    return this.roundConfig.numBombBoosters
+  }
+  get boardShufflesLeft() {
+    return this.roundConfig.boardShufflesLeft
+  }
+  get numTeleportBoosters() {
+    return this.roundConfig.numTeleportBoosters
+  }
+  get difficultySettings() {
+    return { ...this.roundConfig.groupSizeSettings }
+  }
+  get initialConnectedGroupsRatio() {
+    return this.roundConfig.initialConnectedGroupsRatio
+  }
+  get minGroupSizeForTurn() {
+    return this.roundConfig.minGroupSizeForTurn
+  }
+  get numTurnsLeft() {
+    return this.roundConfig.numTurnsLeft
+  }
+  get bombRadius() {
+    return this.roundConfig.bombRadius
+  }
+  get groupSizeForSuperSpawn() {
+    return this.roundConfig.groupSizeForSuperSpawn
+  }
+  get targetScore() {
+    return this.roundConfig.targetScore
   }
   addScore(value: number) {
     this.score += value
   }
   spendTurn() {
-    this.numTurnsLeft--
+    this.roundConfig.numTurnsLeft--
   }
   setStatus(status: TGameStatus) {
     this.status = status
   }
   spendBombBooster() {
-    this.numBombBoosters--
+    this.roundConfig.numBombBoosters--
   }
   spendSwapBooster() {
-    this.numTeleportBoosters--
+    this.roundConfig.numTeleportBoosters--
   }
   spendBoardShuffle() {
-    this.boardShufflesLeft--
+    this.roundConfig.boardShufflesLeft--
   }
 }

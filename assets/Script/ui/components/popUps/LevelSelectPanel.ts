@@ -18,6 +18,8 @@ export default class LevelSelectPanel extends cc.Component {
   mediumDifficulty: BaseButton = null
   @property(BaseButton)
   hardDifficulty: BaseButton = null
+  @property(BaseButton)
+  nightmareDifficulty: BaseButton = null
   // LIFE-CYCLE CALLBACKS:
   setVisible(value: boolean) {
     this.node.active = value
@@ -27,6 +29,7 @@ export default class LevelSelectPanel extends cc.Component {
       easy: this.easyDifficulty,
       medium: this.mediumDifficulty,
       hard: this.hardDifficulty,
+      nightmare: this.nightmareDifficulty,
     }
   }
   // onLoad () {}

@@ -1,18 +1,56 @@
-import { TInitialSpawnSettings } from '../../shared/shared.types'
-import { BoardModel } from '../models/BoardModel'
+import { TGroupSizeSettings } from '../../shared/shared.types'
 import {
-  TileData,
-  TileColor,
-  TileType,
-  RegularTileData,
-  TCellPosition,
+  TSuperTileData,
   SUPER_TILE_TYPES,
-  SuperTileData,
-} from '../models/TileData'
-import { getKey, getRandomArrayElement, getRandomEnumValue, randomInt, shuffleArray } from './board.controllers.utils'
+  TTileData,
+  TileColor,
+  TRegularTileData,
+  TileType,
+  TCellPosition,
+} from '../board.types'
+import { getRandomArrayElement, shuffleArray, floodFill, randomInt, getKey } from '../board.utils'
+import { BoardModel } from '../models/BoardModel'
 
 export class SpawnController {
-  private createRegularTile(x: number, y: number, color: TileColor): RegularTileData {
+  createSuperTile(x: number, y: number): TSuperTileData {
+    return {
+      id: crypto.randomUUID(),
+      x,
+      y,
+      type: getRandomArrayElement(SUPER_TILE_TYPES),
+    }
+  }
+  createAdditionalRegularCells(board: BoardModel<TTileData>, settings: TGroupSizeSettings): TTileData[] {
+    const spawned: TTileData[] = []
+
+    for (let y = 0; y < board.grid.length; y++) {
+      const row = board.grid[y]
+
+      for (let x = 0; x < row.length; x++) {
+        if (row[x]) continue
+
+        const color = this.pickColorForCell(board, x, y, settings.maxGroupSize)
+
+        const tile = this.createRegularTile(x, y, color)
+
+        row[x] = tile
+        spawned.push(tile)
+      }
+    }
+
+    return spawned
+  }
+
+  createInitialCells(board: BoardModel<TTileData>, groupSizeOptions: TGroupSizeSettings, connectivityRatio: number) {
+    const colors = shuffleArray(Object.values(TileColor)) as TileColor[]
+    if (colors.length < 3) {
+      throw new Error('SpawnController requires at least 3 colors')
+    }
+
+    this.fillBaseNoMatches(board, colors)
+    this.injectGroups(board, groupSizeOptions, connectivityRatio, colors)
+  }
+  private createRegularTile(x: number, y: number, color: TileColor): TRegularTileData {
     return {
       id: crypto.randomUUID(),
       x,
@@ -21,37 +59,26 @@ export class SpawnController {
       type: TileType.Regular,
     }
   }
-  createSuperTile(x: number, y: number): SuperTileData {
-    return {
-      id: crypto.randomUUID(),
-      x,
-      y,
-      type: getRandomArrayElement(SUPER_TILE_TYPES),
-    }
-  }
-  createAdditionalRegularCells(board: BoardModel<TileData>) {
-    const { grid } = board
-    for (let y = 0; y < grid.length; y++) {
-      const row = grid[y]
-      for (let x = 0; x < row.length; x++) {
-        const cell = row[x]
-        if (!cell) {
-          row[x] = this.createRegularTile(x, y, getRandomEnumValue(TileColor))
-        }
+  private pickColorForCell(board: BoardModel<TTileData>, x: number, y: number, maxGroupSize: number): TileColor {
+    const shuffledColors = shuffleArray(Object.values(TileColor)) as TileColor[]
+
+    for (const color of shuffledColors) {
+      const tile = this.createRegularTile(x, y, color)
+
+      board.grid[y][x] = tile
+
+      const group = floodFill(board, tile)
+
+      board.grid[y][x] = null
+
+      if (group.length <= maxGroupSize) {
+        return color
       }
     }
-  }
-  createInitialCells(board: BoardModel<TileData>, options: TInitialSpawnSettings): void {
-    const colors = shuffleArray(Object.values(TileColor)) as TileColor[]
-    if (colors.length < 3) {
-      throw new Error('SpawnController requires at least 3 colors')
-    }
 
-    this.fillBaseNoMatches(board, colors)
-    this.injectGroups(board, options, colors)
+    return shuffledColors[0]
   }
-
-  private fillBaseNoMatches(board: BoardModel<TileData>, colors: TileColor[]): void {
+  private fillBaseNoMatches(board: BoardModel<TTileData>, colors: TileColor[]) {
     for (let y = 0; y < board.grid.length; y++) {
       for (let x = 0; x < board.grid[y].length; x++) {
         const color = colors[(x + y) % colors.length]
@@ -61,9 +88,14 @@ export class SpawnController {
     }
   }
 
-  private injectGroups(board: BoardModel<TileData>, options: TInitialSpawnSettings, colors: TileColor[]): void {
+  private injectGroups(
+    board: BoardModel<TTileData>,
+    options: TGroupSizeSettings,
+    connectivityRatio: number,
+    colors: TileColor[],
+  ) {
     const totalCells = board.widthTiles * board.heightTiles
-    const targetConnectedCells = Math.floor(totalCells * options.connectedRatio)
+    const targetConnectedCells = Math.floor(totalCells * connectivityRatio)
 
     const lockedCells = new Set<string>()
 
@@ -114,7 +146,7 @@ export class SpawnController {
     }
   }
 
-  private buildRandomArea(board: BoardModel<TileData>, targetSize: number, lockedCells: Set<string>): TCellPosition[] {
+  private buildRandomArea(board: BoardModel<TTileData>, targetSize: number, lockedCells: Set<string>): TCellPosition[] {
     const start = this.getRandomUnlockedCell(board, lockedCells)
 
     if (!start) return []
@@ -153,7 +185,7 @@ export class SpawnController {
     return result
   }
 
-  private getRandomUnlockedCell(board: BoardModel<TileData>, lockedCells: Set<string>): TCellPosition | null {
+  private getRandomUnlockedCell(board: BoardModel<TTileData>, lockedCells: Set<string>): TCellPosition | null {
     const cells: TCellPosition[] = []
 
     for (let y = 0; y < board.grid.length; y++) {
@@ -171,8 +203,8 @@ export class SpawnController {
     return cells[randomInt(0, cells.length - 1)]
   }
 
-  private snapshotArea(board: BoardModel<TileData>, area: TCellPosition[]): TileData[] {
-    const result: TileData[] = []
+  private snapshotArea(board: BoardModel<TTileData>, area: TCellPosition[]): TTileData[] {
+    const result: TTileData[] = []
 
     for (let i = 0; i < area.length; i++) {
       const cell = area[i]
@@ -186,14 +218,14 @@ export class SpawnController {
     return result
   }
 
-  private restoreArea(board: BoardModel<TileData>, tiles: TileData[]): void {
+  private restoreArea(board: BoardModel<TTileData>, tiles: TTileData[]) {
     for (let i = 0; i < tiles.length; i++) {
       const tile = tiles[i]
       board.grid[tile.y][tile.x] = tile
     }
   }
 
-  private paintArea(board: BoardModel<TileData>, area: TCellPosition[], color: TileColor): void {
+  private paintArea(board: BoardModel<TTileData>, area: TCellPosition[], color: TileColor) {
     for (let i = 0; i < area.length; i++) {
       const cell = area[i]
 
@@ -201,7 +233,7 @@ export class SpawnController {
     }
   }
 
-  private validateMaxGroupSize(board: BoardModel<TileData>, maxGroupSize: number): boolean {
+  private validateMaxGroupSize(board: BoardModel<TTileData>, maxGroupSize: number): boolean {
     const visited = new Set<string>()
 
     for (let y = 0; y < board.grid.length; y++) {
@@ -225,7 +257,7 @@ export class SpawnController {
     return true
   }
 
-  private collectGroupSize(board: BoardModel<TileData>, startX: number, startY: number, visited: Set<string>): number {
+  private collectGroupSize(board: BoardModel<TTileData>, startX: number, startY: number, visited: Set<string>): number {
     const startTile = board.grid[startY][startX]
 
     if (!startTile || startTile.type !== TileType.Regular) {
@@ -264,7 +296,7 @@ export class SpawnController {
     return size
   }
 
-  private getNeighbors(board: BoardModel<TileData>, x: number, y: number): TCellPosition[] {
+  private getNeighbors(board: BoardModel<TTileData>, x: number, y: number): TCellPosition[] {
     const result: TCellPosition[] = []
 
     const directions: TCellPosition[] = [
