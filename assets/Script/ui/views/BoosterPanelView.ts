@@ -2,8 +2,8 @@ import { TBoosterType, TSelectedBooster } from '../../core/core.types'
 import { tweenToPromise } from '../../shared/shared.utils'
 import BoosterPanel from '../components/roundPanels/BoosterPanel'
 import { BoosterButtonView } from './BoosterButtonView'
-const TARGET_Y_POS = -624
-const FADE_Y_POS = -2000
+const TARGET_Y_POS = 0
+const FADE_Y_POS = -624
 export class BoosterPanelView {
   private readonly buttons: Record<TBoosterType, BoosterButtonView>
 

@@ -2,8 +2,8 @@ import { GameModel } from '../../gameplay/models/GameModel'
 import { tweenToPromise } from '../../shared/shared.utils'
 import TopPanel from '../components/roundPanels/TopPanel'
 import { CurrentScoreView } from './CurrentScoreView'
-const TARGET_Y_POS = 735
-const FADE_Y_POS = 2000
+const TARGET_Y_POS = 0
+const FADE_Y_POS = 735
 export class TopPanelView {
   private readonly currentScore: CurrentScoreView
   constructor(private component: TopPanel) {

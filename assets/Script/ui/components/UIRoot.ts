@@ -6,6 +6,7 @@
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
 import LevelSelectPanel from './popUps/LevelSelectPanel'
+import Overlay from './popUps/Overlay'
 import PopupLayer from './popUps/PopupLayer'
 import BoosterPanel from './roundPanels/BoosterPanel'
 import TopPanel from './roundPanels/TopPanel'
@@ -18,9 +19,10 @@ export default class UIRoot extends cc.Component {
   boosterPanel: BoosterPanel = null
   @property(TopPanel)
   topPanel: TopPanel = null
-  //TODO: move to PopupRoot
   @property(PopupLayer)
   popupLayer: PopupLayer = null
+  @property(Overlay)
+  overlay: Overlay = null
   @property(LevelSelectPanel)
   levelSelectPanel: LevelSelectPanel = null
   // LIFE-CYCLE CALLBACKS:

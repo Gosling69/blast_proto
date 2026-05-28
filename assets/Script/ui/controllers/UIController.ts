@@ -8,10 +8,11 @@ import { TopPanelView } from '../views/TopPanelView'
 import BoosterPanel from '../components/roundPanels/BoosterPanel'
 import { TDifficulty } from '../../shared/shared.types'
 import PopupLayer from '../components/popUps/PopupLayer'
+import Overlay from '../components/popUps/Overlay'
 export type TUIView = {
   topPanel: TopPanel
   boosterPanel: BoosterPanel
-  // roundOverPopup: RoundOverPopup
+  overlay: Overlay
   popupLayer: PopupLayer
   levelSelectPanel: LevelSelectPanel
 }
@@ -22,6 +23,7 @@ export class UIController {
   private topPanelView: TopPanelView
 
   private popupLayer: PopupLayer
+  private overlay: Overlay
   onBombButtonClick: (() => void) | undefined = () => {}
   onSwapButtonClick: (() => void) | undefined = () => {}
   difficultyOnClick: Record<TDifficulty, (() => void) | undefined> = {
@@ -35,6 +37,7 @@ export class UIController {
     this.levelSelectView = new LevelSelectView(view.levelSelectPanel)
     this.topPanelView = new TopPanelView(view.topPanel)
     this.popupLayer = view.popupLayer
+    this.overlay = view.overlay
     this.boosterPanelView.setOnClickHandler('bomb', () => this.onBombButtonClick?.())
     this.boosterPanelView.setOnClickHandler('teleport', () => this.onSwapButtonClick?.())
     this.levelSelectView.setOnClickHandler(`easy`, () => this.difficultyOnClick.easy?.())
@@ -84,9 +87,9 @@ export class UIController {
     return Promise.all([this.topPanelView.playDespawnAnimation(), this.boosterPanelView.playDespawnAnimation()])
   }
   async showGameResult(status: TGameStatus) {
-    await Promise.all([this.popupLayer.overlay.show(), this.popupLayer.popup.show(status)])
+    await Promise.all([this.overlay.show(), this.popupLayer.popup.show(status)])
 
-    return this.popupLayer.overlay.hide()
+    return this.overlay.hide()
   }
   public setSelectedBooster(mode: TSelectedBooster): void {
     this.boosterPanelView.setSelected(mode)

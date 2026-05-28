@@ -37,7 +37,7 @@ export const BASE_DIFFICULTIES: TGameDifficulties = {
     numTeleportBoosters: 5,
     groupSizeForSuperSpawn: 5,
     numTurnsLeft: 20,
-    targetScore: 100,
+    targetScore: 10,
     initialSpawnSettings: {
       minGroupSize: 3,
       maxGroupSize: 6,
