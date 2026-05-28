@@ -10,7 +10,7 @@ export class MatchController {
     }
     return floodFill(board, tile)
   }
-  checkIsNoTurnsLeft(board: BoardModel<TTileData>, minGroupSize: number) {
+  hasAvailableMoves(board: BoardModel<TTileData>, minGroupSize: number) {
     return hasAvailableMoves(board, minGroupSize)
   }
 }

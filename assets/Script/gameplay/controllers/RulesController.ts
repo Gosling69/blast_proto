@@ -1,5 +1,5 @@
 import { TileType } from '../../board/board.types'
-import { TDestroyContext, TGameStatus } from '../gameplay.types'
+import { TDestroyContext, TGameStatus, TTurnResolution } from '../gameplay.types'
 import { GameModel } from '../models/GameModel'
 
 export class RulesController {
@@ -25,6 +25,31 @@ export class RulesController {
             return context.targetsCount > 0
         }
     }
+  }
+  getTurnResolution(params: {
+    score: number
+    targetScore: number
+    turnsLeft: number
+    hasAvailableMoves: boolean
+    hasBoosters: boolean
+    shufflesLeft: number
+  }): TTurnResolution {
+    if (params.score >= params.targetScore) {
+      return 'win'
+    }
+
+    if (params.turnsLeft <= 0) {
+      return 'lose'
+    }
+
+    if (params.hasAvailableMoves || params.hasBoosters) {
+      return 'playing'
+    }
+    if (params.shufflesLeft > 0) {
+      return 'needShuffle'
+    }
+
+    return 'lose'
   }
   getGameResult(gameModel: GameModel, hasAvailableMoves: boolean): TGameStatus {
     if (this.isWin(gameModel)) return `win`

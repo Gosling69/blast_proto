@@ -29,3 +29,4 @@ export type TSelectionAction =
 
 export type TInputAction = TDestroyAction | TSwapAction | TSelectionAction
 export type TGameStatus = `win` | `lose` | `playing`
+export type TTurnResolution = 'playing' | 'win' | 'lose' | 'needShuffle'

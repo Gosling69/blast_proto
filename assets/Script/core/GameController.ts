@@ -14,7 +14,14 @@ import UIRoot from '../ui/components/UIRoot'
 import { TDifficulty, TRoundConfig } from '../shared/shared.types'
 import { BASE_DIFFICULTIES, DEFAULT_CONFIG } from '../shared/shared.constants'
 import { createDestroyContext, inputStateToSelectedBooster } from './core.utils'
-import { TDestroyAction, TGameStatus, TInputAction, TInputState, TSwapAction } from '../gameplay/gameplay.types'
+import {
+  TDestroyAction,
+  TGameStatus,
+  TInputAction,
+  TInputState,
+  TSwapAction,
+  TTurnResolution,
+} from '../gameplay/gameplay.types'
 import { THudViewModel } from '../ui/ui.types'
 import { InputController } from '../gameplay/controllers/InputController'
 import { GameModel } from '../gameplay/models/GameModel'
@@ -37,7 +44,6 @@ export class GameController {
   private readonly boosterController: BoosterController = new BoosterController()
   private readonly specialTileController: SpecialTileController = new SpecialTileController()
   private readonly uiController: UIController
-  private readonly onClickWithContext = this.handleTileClick.bind(this)
   private turnState: TTurnState = `idle`
 
   constructor(
@@ -51,7 +57,14 @@ export class GameController {
     this.uiController.onSwapButtonClick = () => this.handleTeleportButtonClick()
     this.uiController.setLevelSelectOnClickHandler(this.onDifficultySelected.bind(this))
     this.uiController.disableGameUI()
-    ;(window as any)[`shuffle`] = this.shuffleBoard.bind(this)
+    ;(window as any)[`shuffle`] = async () => {
+      if (!this.gameModel.boardShufflesLeft) {
+        console.error(`No shuffles, even for degub :c`)
+        return
+      }
+      await this.shuffleBoard()
+      this.gameModel.spendBoardShuffle()
+    }
   }
   async initializeGame() {
     return this.uiController.playLevelSelectPanelSpawnAnimation()
@@ -61,7 +74,6 @@ export class GameController {
     this.boardModel = new BoardModel<TTileData>(this.config.boardWidth, this.config.boardHeight)
 
     this.gameModel = new GameModel(this.config)
-    this.uiController.render(this.createHudViewModel())
     await this.boardView.playSpawnAnimation()
     await this.uiController.playRoundUISpawnAnimation()
 
@@ -77,6 +89,7 @@ export class GameController {
     await this.boardView.renderByRows(this.boardModel)
     this.turnState = `idle`
     this.uiController.enableGameUI()
+    this.uiController.render(this.createHudViewModel())
   }
   async disposeRound() {
     await this.uiController.playRoundUIDespawnAnimation()
@@ -93,20 +106,38 @@ export class GameController {
     await Promise.all([gravityPromise, spawnPromise])
     return Promise.resolve()
   }
-  private async onTurnFinished() {
-    const gameStatus = this.checkGameResult()
-    const hasBoosters = this.gameModel.numBombBoosters > 0 || this.gameModel.numTeleportBoosters > 0
-    if (gameStatus === `lose` && this.gameModel.boardShufflesLeft > 0 && this.gameModel.numTurnsLeft > 0) {
-      await this.shuffleBoard()
-      this.gameModel.spendBoardShuffle()
-      this.turnState = `idle`
-      return Promise.resolve()
+  private async onTurnFinished(): Promise<void> {
+    const resolution = this.getTurnResolution()
+    switch (resolution) {
+      case 'needShuffle':
+        await this.shuffleBoard()
+        this.gameModel.spendBoardShuffle()
+        this.turnState = 'idle'
+        return
+
+      case 'win':
+      case 'lose':
+        await this.onRoundFinished(resolution)
+        return
+
+      case 'playing':
+        this.turnState = 'idle'
+        return
     }
-    if (gameStatus !== `playing`) {
-      return this.onRoundFinished(gameStatus)
-    }
-    this.turnState = `idle`
-    return Promise.resolve()
+  }
+  private getTurnResolution(): TTurnResolution {
+    const hasAvailableMoves = this.matchController.hasAvailableMoves(
+      this.boardModel,
+      this.gameModel.minGroupSizeForTurn,
+    )
+    return this.rulesController.getTurnResolution({
+      score: this.gameModel.score,
+      targetScore: this.gameModel.targetScore,
+      turnsLeft: this.gameModel.numTurnsLeft,
+      hasAvailableMoves,
+      hasBoosters: this.gameModel.hasBoosters,
+      shufflesLeft: this.gameModel.boardShufflesLeft,
+    })
   }
   private async onRoundFinished(status: TGameStatus): Promise<void> {
     this.uiController.disableGameUI()
@@ -260,14 +291,11 @@ export class GameController {
         this.gameModel.spendBombBooster()
     }
   }
-  private checkGameResult() {
-    const hasAvailableMoves = this.matchController.checkIsNoTurnsLeft(
-      this.boardModel,
-      this.gameModel.minGroupSizeForTurn,
-    )
-    return this.rulesController.getGameResult(this.gameModel, hasAvailableMoves)
-  }
   private async shuffleBoard() {
+    if (!this.boardModel) {
+      console.log(`Round not initialized yet, nothing to shuffle`)
+      return
+    }
     const moves = this.boardModel.shuffle()
     const animationPromises = moves.map((move) => this.boardView.animateSwap(move.tileFrom, move.tileTo))
     return Promise.all(animationPromises)

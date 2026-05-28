@@ -7,6 +7,9 @@ export class GameModel {
   public status: TGameStatus = `playing`
 
   constructor(private roundConfig: TRoundConfig) {}
+  get hasBoosters() {
+    return this.roundConfig.numBombBoosters > 0 || this.roundConfig.numTeleportBoosters > 0
+  }
   get numBombBoosters() {
     return this.roundConfig.numBombBoosters
   }
