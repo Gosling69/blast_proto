@@ -1,4 +1,4 @@
-import { TInitialSpawnSettings as TBoardSpawnSettings, TRoundConfig, TGameDifficulties } from './types'
+import { TInitialSpawnSettings as TBoardSpawnSettings, TRoundConfig, TGameDifficulties } from './shared.types'
 
 const BOARD_WIDTH = 8
 const BOARD_HEIGHT = 8

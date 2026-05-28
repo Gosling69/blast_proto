@@ -1,4 +1,4 @@
-import { createGrid } from '../controllers/utils'
+import { createGrid } from '../controllers/board.controllers.utils'
 import { BaseTileData } from './TileData'
 
 //TODO: хуевая типизация

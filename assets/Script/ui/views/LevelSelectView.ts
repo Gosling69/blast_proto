@@ -1,5 +1,5 @@
-import { TDifficulty } from '../../shared/types'
-import { tweenToPromise } from '../../shared/utils'
+import { TDifficulty } from '../../shared/shared.types'
+import { tweenToPromise } from '../../shared/shared.utils'
 import BaseButton from '../components/buttons/BaseButton'
 import LevelSelectPanel from '../components/popUps/LevelSelectPanel'
 import { BaseButtonView } from './BaseButtonView'

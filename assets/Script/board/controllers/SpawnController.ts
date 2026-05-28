@@ -1,4 +1,4 @@
-import { TInitialSpawnSettings } from '../../shared/types'
+import { TInitialSpawnSettings } from '../../shared/shared.types'
 import { BoardModel } from '../models/BoardModel'
 import {
   TileData,
@@ -9,7 +9,7 @@ import {
   SUPER_TILE_TYPES,
   SuperTileData,
 } from '../models/TileData'
-import { getKey, getRandomArrayElement, getRandomEnumValue, randomInt, shuffleArray } from './utils'
+import { getKey, getRandomArrayElement, getRandomEnumValue, randomInt, shuffleArray } from './board.controllers.utils'
 
 export class SpawnController {
   private createRegularTile(x: number, y: number, color: TileColor): RegularTileData {

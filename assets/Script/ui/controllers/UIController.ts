@@ -1,12 +1,12 @@
 import { GameModel, TGameStatus } from '../../gameplay/models/GameModel'
-import { TBoosterType, TSelectedBooster } from '../../core/types'
+import { TBoosterType, TSelectedBooster } from '../../core/core.types'
 import { BoosterPanelView } from '../views/BoosterPanelView'
 import LevelSelectPanel from '../components/popUps/LevelSelectPanel'
 import { LevelSelectView } from '../views/LevelSelectView'
 import TopPanel from '../components/roundPanels/TopPanel'
 import { TopPanelView } from '../views/TopPanelView'
 import BoosterPanel from '../components/roundPanels/BoosterPanel'
-import { TDifficulty } from '../../shared/types'
+import { TDifficulty } from '../../shared/shared.types'
 import PopupLayer from '../components/popUps/PopupLayer'
 export type TUIView = {
   topPanel: TopPanel

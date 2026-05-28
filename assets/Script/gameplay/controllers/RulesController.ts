@@ -1,6 +1,6 @@
 import { TileType } from '../../board/models/TileData'
 import { GameModel, TGameStatus } from '../models/GameModel'
-import { TDestroyContext } from '../types'
+import { TDestroyContext } from '../gameplay.types'
 
 const MIN_LENGTH_TO_DESTROY = 2
 

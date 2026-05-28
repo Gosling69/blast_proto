@@ -1,4 +1,4 @@
-import { TInitialSpawnSettings, TRoundConfig } from '../../shared/types'
+import { TInitialSpawnSettings, TRoundConfig } from '../../shared/shared.types'
 
 export type TGameStatus = `win` | `lose` | `playing`
 

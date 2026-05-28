@@ -1,5 +1,5 @@
 import BoosterButton from '../components/buttons/BoosterButton'
-import { TBoosterType } from '../../core/types'
+import { TBoosterType } from '../../core/core.types'
 import { BaseButtonView } from './BaseButtonView'
 
 export class BoosterButtonView extends BaseButtonView<BoosterButton> {

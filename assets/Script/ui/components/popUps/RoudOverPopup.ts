@@ -5,7 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
-import { tweenToPromise } from '../../../shared/utils'
+import { tweenToPromise } from '../../../shared/shared.utils'
 
 const { ccclass, property } = cc._decorator
 const INITIAL_POSITION = 500

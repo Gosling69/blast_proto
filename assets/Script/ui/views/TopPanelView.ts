@@ -1,5 +1,5 @@
 import { GameModel } from '../../gameplay/models/GameModel'
-import { tweenToPromise } from '../../shared/utils'
+import { tweenToPromise } from '../../shared/shared.utils'
 import TopPanel from '../components/roundPanels/TopPanel'
 import { CurrentScoreView } from './CurrentScoreView'
 const TARGET_Y_POS = 735

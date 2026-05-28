@@ -20,10 +20,10 @@ import { ScoreController } from '../gameplay/controllers/ScoreController'
 import { SpecialTileController } from '../gameplay/controllers/SpecialTilesController'
 import Board from '../board/components/Board'
 import UIRoot from '../ui/components/UIRoot'
-import { TDifficulty, TRoundConfig } from '../shared/types'
-import { BASE_DIFFICULTIES, DEFAULT_CONFIG } from '../shared/constants'
-import { inputStateToSelectedBooster } from './utils'
-import { TDestroyContext } from '../gameplay/types'
+import { TDifficulty, TRoundConfig } from '../shared/shared.types'
+import { BASE_DIFFICULTIES, DEFAULT_CONFIG } from '../shared/shared.constants'
+import { inputStateToSelectedBooster } from './core.utils'
+import { TDestroyContext } from '../gameplay/gameplay.types'
 
 export type TTurnState = `idle` | `processing` | `finished`
 export class GameController {

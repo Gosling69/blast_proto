@@ -5,7 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
-import { COLOR_BLUE, COLOR_GREEN, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW } from '../constants'
+import { COLOR_BLUE, COLOR_GREEN, COLOR_PURPLE, COLOR_RED, COLOR_YELLOW } from '../board.constants'
 import { TColorFrames, TParticleColors, TSpecialFrames } from '../views/BoardView'
 
 const { ccclass, property } = cc._decorator

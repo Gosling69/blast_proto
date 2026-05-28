@@ -5,7 +5,7 @@ import Tile from '../components/Tile'
 import { TileColor, TileData, TileType } from '../models/TileData'
 import { TileView } from './TileView'
 import Board from '../components/Board'
-import { sleep, tweenToPromise } from '../../shared/utils'
+import { sleep, tweenToPromise } from '../../shared/shared.utils'
 export type TColorFrames = Record<TileColor, cc.SpriteFrame>
 export type TParticleColors = Record<TileColor, cc.Color>
 export type TSpecialFrames = Record<Exclude<TileType, TileType.Regular>, cc.SpriteFrame>

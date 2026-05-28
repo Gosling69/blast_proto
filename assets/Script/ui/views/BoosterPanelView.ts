@@ -1,5 +1,5 @@
-import { TBoosterType, TSelectedBooster } from '../../core/types'
-import { tweenToPromise } from '../../shared/utils'
+import { TBoosterType, TSelectedBooster } from '../../core/core.types'
+import { tweenToPromise } from '../../shared/shared.utils'
 import BoosterPanel from '../components/roundPanels/BoosterPanel'
 import { BoosterButtonView } from './BoosterButtonView'
 const TARGET_Y_POS = -624

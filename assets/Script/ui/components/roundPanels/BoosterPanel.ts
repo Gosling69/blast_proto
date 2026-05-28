@@ -5,7 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
-import { TBoosterType } from '../../../core/types'
+import { TBoosterType } from '../../../core/core.types'
 import BoosterButton from '../buttons/BoosterButton'
 
 const { ccclass, property } = cc._decorator

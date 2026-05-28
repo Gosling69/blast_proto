@@ -1,4 +1,4 @@
-import { GameEvents } from './types'
+import { GameEvents } from './core.types'
 
 type Listener = (...args: any[]) => void
 class EventEmitter<T extends { [K in keyof T]: Listener }> {

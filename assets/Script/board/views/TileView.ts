@@ -1,7 +1,7 @@
-import { tweenToPromise } from '../../shared/utils'
+import { tweenToPromise } from '../../shared/shared.utils'
 import Tile from '../components/Tile'
 import { TileData } from '../models/TileData'
-import { shakeNode } from '../utils'
+import { shakeNode } from '../board.utils'
 
 export class TileView {
   private invalidClickTween: cc.Tween | null = null

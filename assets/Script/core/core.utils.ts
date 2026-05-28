@@ -1,5 +1,5 @@
 import { TInputState } from '../gameplay/controllers/InputController'
-import { TSelectedBooster } from './types'
+import { TSelectedBooster } from './core.types'
 
 export const createGrid = <T>(width: number, height: number, value: T) => {
   return Array.from({ length: height }, () => Array.from({ length: width }, () => value))

@@ -5,7 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
-import { TDifficulty } from '../../../shared/types'
+import { TDifficulty } from '../../../shared/shared.types'
 import BaseButton from '../buttons/BaseButton'
 
 const { ccclass, property } = cc._decorator

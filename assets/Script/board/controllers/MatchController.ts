@@ -1,6 +1,6 @@
 import { BoardModel } from '../models/BoardModel'
 import { TileData, TileType } from '../models/TileData'
-import { floodFill, hasAvailableMoves } from './utils'
+import { floodFill, hasAvailableMoves } from './board.controllers.utils'
 
 export class MatchController {
   constructor() {}
