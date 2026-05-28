@@ -58,7 +58,7 @@ export class GameController {
     this.uiController.setLevelSelectOnClickHandler(this.onDifficultySelected.bind(this))
     this.uiController.disableGameUI()
     ;(window as any)[`shuffle`] = async () => {
-      if (!this.gameModel.boardShufflesLeft) {
+      if (!this.gameModel?.boardShufflesLeft) {
         console.error(`No shuffles, even for degub :c`)
         return
       }
