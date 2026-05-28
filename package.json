@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint assets",
     "lint:fix": "eslint assets --fix",
-    "format": "prettier --write assets"
+    "format": "prettier --write assets",
+    "deploy": "gh-pages -d build/web-mobile"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "gh-pages": "^6.3.0",
     "globals": "^17.6.0",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
