@@ -61,7 +61,6 @@ export class GameController {
     this.boardModel = new BoardModel<TTileData>(this.config.boardWidth, this.config.boardHeight)
 
     this.gameModel = new GameModel(this.config)
-    console.warn(this.gameModel)
     this.uiController.render(this.createHudViewModel())
     await this.boardView.playSpawnAnimation()
     await this.uiController.playRoundUISpawnAnimation()
