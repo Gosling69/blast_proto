@@ -14,7 +14,7 @@ Level presets and gameplay balancing settings are located at:
 | ----------------------------- | -------------------- | ------------------------------------------------------------- |
 | `targetScore`                 | `number`             | Score required to complete the round                          |
 | `numTurnsLeft`                | `number`             | Number of turns available to the player                       |
-| `numBombBoosters`             | `number`             | Initial amount of bomb boosters and regulat bomb Special Tile |
+| `numBombBoosters`             | `number`             | Initial amount of bomb boosters|
 | `bombRadius`                  | `number`             | Explosion radius for bomb boosters                            |
 | `numTeleportBoosters`         | `number`             | Initial amount of teleport boosters                           |
 | `boardHeight`                 | `number`             | Height of the game board                                      |
